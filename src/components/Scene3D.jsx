@@ -8,11 +8,11 @@ function Loader() {
   return (
     <Html center>
       <div style={{display:'flex',flexDirection:'column',alignItems:'center',gap:'12px'}}>
-        <div style={{fontFamily:"'Bebas Neue',sans-serif",fontSize:'1.6rem',letterSpacing:'.3em',color:'#f5f3ee'}}>TSC</div>
-        <div style={{width:160,height:1,background:'rgba(245,243,238,.08)',position:'relative',overflow:'hidden'}}>
-          <div style={{position:'absolute',inset:'0 auto 0 0',background:'#c8a96e',width:`${progress}%`,transition:'width .1s'}}/>
+        <div style={{fontFamily:"'Space Grotesk',sans-serif",fontSize:'1.3rem',letterSpacing:'.4em',color:'#ffffff',fontWeight:700}}>NU</div>
+        <div style={{width:160,height:1,background:'rgba(255,255,255,.1)',position:'relative',overflow:'hidden'}}>
+          <div style={{position:'absolute',inset:'0 auto 0 0',background:'linear-gradient(90deg, #888, #fff)',width:`${progress}%`,transition:'width .1s'}}/>
         </div>
-        <div style={{fontSize:'.55rem',letterSpacing:'.24em',color:'rgba(245,243,238,.25)'}}>{Math.round(progress)}%</div>
+        <div style={{fontSize:'.55rem',letterSpacing:'.3em',color:'rgba(255,255,255,.4)'}}>{Math.round(progress)}%</div>
       </div>
     </Html>
   )
@@ -21,7 +21,7 @@ function Loader() {
 export default function Scene3D() {
   const dpr = typeof window !== 'undefined' ? Math.min(window.devicePixelRatio, 2) : 1
   return (
-    <div style={{position:'fixed',inset:0,zIndex:0,pointerEvents:'none'}}>
+    <div style={{position:'fixed',inset:0,zIndex:1,pointerEvents:'none'}}>
       <Canvas
         camera={{ position:[0,0,3.5], fov:42, near:0.05, far:50 }}
         gl={{
@@ -34,20 +34,21 @@ export default function Scene3D() {
         shadows
         onCreated={({gl}) => {
           gl.toneMapping = 3
-          gl.toneMappingExposure = 1.35
+          gl.toneMappingExposure = 1.2
           gl.shadowMap.autoUpdate = false
           gl.shadowMap.needsUpdate = true
         }}
         style={{background:'transparent'}}
       >
-        <hemisphereLight args={[0x1a1a2e, 0x0a0a0a, 0.6]}/>
-        <directionalLight position={[5,8,6]} intensity={2.5} color="#fff4e0"
+        <ambientLight intensity={0.4} color="#e0e8f5" />
+        <directionalLight position={[6,10,7]} intensity={2.8} color="#ffffff"
           castShadow shadow-mapSize-width={512} shadow-mapSize-height={512}/>
-        <directionalLight position={[-5,-2,3]} intensity={0.9} color="#d4aa70"/>
-        <directionalLight position={[0,-6,-5]} intensity={1.1}/>
-        <pointLight position={[-2,3,2]} intensity={2.2} color="#d4b87c" distance={14}/>
+        <directionalLight position={[-6,-2,4]} intensity={1.2} color="#8da0b8"/>
+        <directionalLight position={[0,-6,-5]} intensity={0.8} color="#556070"/>
+        <pointLight position={[-2,3,2]} intensity={2.4} color="#dbe5f0" distance={16}/>
+        <pointLight position={[3,-2,2]} intensity={1.5} color="#ffffff" distance={10}/>
         <Suspense fallback={<Loader/>}>
-          <ShoeModel/>
+          <ShoeModel />
         </Suspense>
       </Canvas>
     </div>

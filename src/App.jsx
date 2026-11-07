@@ -1,197 +1,214 @@
-import { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useRef, useState, Component } from 'react'
 import { Link } from 'react-scroll'
 import Scene3D from './components/Scene3D'
 import { useLenis } from './hooks/useLenis'
 
-/* ── Scene data ────────────────────────────────────────────── */
+class CanvasErrorBoundary extends Component {
+  constructor(props) {
+    super(props)
+    this.state = { hasError: false }
+  }
+  static getDerivedStateFromError() {
+    return { hasError: true }
+  }
+  componentDidCatch(error, info) {
+    console.warn('Canvas 3D Error:', error, info)
+  }
+  render() {
+    if (this.state.hasError) {
+      return null
+    }
+    return this.props.children
+  }
+}
+
+/* ── 4 Primary Scenes (Matching 01 / 04 Format) ─────────────── */
 const SCENES = [
   {
-    id:'sc0', scrollId:'home', align:'l',
-    label:'New Collection 2025',
-    title:[<>THE <span className="g">SHOE</span> COMPANY</>],
-    body:'Where precision engineering meets uncompromising style. Every step, perfected.',
-    cta:true,
+    id: 'sc0',
+    scrollId: 'home',
+    step: '01 / 04',
+    align: 'l',
+    isHero: true,
   },
   {
-    id:'sc1', scrollId:'story', align:'r',
-    label:'Engineered Comfort',
-    title:['THE HEEL'],
-    body:'Precision heel cup with adaptive flex technology. Reduces fatigue across long distances, cradling your foot with surgical accuracy.',
-    stats:[{n:'12°',l:'Ideal pitch'},{n:'3×',l:'Impact absorption'}],
+    id: 'sc1',
+    scrollId: 'technology',
+    step: '02 / 04',
+    align: 'r',
+    label: '02 / 04 · Kinetic Architecture',
+    title: <>ADAPTIVE <span className="highlight">SUSPENSION</span></>,
+    body: 'Precision hollow-core heel chassis engineered with dampening polymers. Absorbs horizontal impact vectors while propelling forward momentum with zero wasted energy.',
+    stats: [
+      { n: '12°', l: 'ANATOMIC PITCH' },
+      { n: '3.4×', l: 'SHOCK DAMPENING' },
+      { n: '0.4mm', l: 'FLEX SHELL' },
+    ],
+    features: [
+      { num: '01', title: 'AERATION MESH', desc: 'Breathable mono-filament knit with multi-zone thermal dispersal.' },
+      { num: '02', title: 'AIR SUSPENSION', desc: 'Twin pressurized nitrogen pods for dynamic rebound at high velocity.' },
+    ],
   },
   {
-    id:'sc2', scrollId:'sole', align:'l',
-    label:'Ground Contact',
-    title:['THE SOLE'],
-    body:'Carbon-reinforced outsole with 128 independent lug points. Every terrain conquered with brutal efficiency and zero slip.',
-    stats:[{n:'128',l:'Lug points'},{n:'98%',l:'Grip retention'}],
+    id: 'sc2',
+    scrollId: 'performance',
+    step: '03 / 04',
+    align: 'l',
+    label: '03 / 04 · Ground Contact',
+    title: <>LIQUID-FORM <span className="highlight">TRACTION</span></>,
+    body: 'High-density carbon fiber matrix with 128 micro-lug contact nodes. Fluid aerodynamic geometry locks onto multi-directional terrain with surgical grip.',
+    stats: [
+      { n: '128', l: 'KINETIC LUG NODES' },
+      { n: '99.2%', l: 'KINETIC RETURN' },
+      { n: '210g', l: 'CHASSIS WEIGHT' },
+    ],
+    features: [
+      { num: '03', title: 'CARBON PLATE', desc: 'Sculpted aerospace carbon-fiber backbone offering torsional stiffness.' },
+      { num: '04', title: 'ZERO-SLIP COMPOUND', desc: 'Custom formulated vulcanized polymer engineered for wet & dry surfaces.' },
+    ],
   },
   {
-    id:'sc3', scrollId:'front', align:'r',
-    label:'Natural Motion',
-    title:['THE FRONT'],
-    body:'A toebox that breathes with your foot. Micro-perforated leather allows airflow while maintaining structural integrity.',
-    stats:[{n:'0.4mm',l:'Material flex'},{n:'40%',l:'More breathable'}],
-  },
-  {
-    id:'sc4', scrollId:'material', align:'l',
-    label:'Craftsmanship',
-    title:[<>FULL <span className="g">GRAIN</span> LEATHER</>],
-    body:'Sourced from Italian tanneries. Aged in open-air drums for 6 weeks. The surface develops character — every crease a memory.',
-    stats:[{n:'6wk',l:'Tanning'},{n:'Italy',l:'Origin'}],
-  },
-  {
-    id:'sc5', scrollId:'features', align:'c',
-    label:"Why We're Different",
-    titleSmall:true,
-    title:[<>BUILT <span className="g">DIFFERENT<br/></span></>],
-    grid:true,
-  },
-  {
-    id:'sc6', scrollId:'reviews', align:'c',
-    label:'What People Say',
-    titleSmall:true,
-    title:[<>STEP INTO <span className="g">THE FUTURE</span></>],
-    testi:true,
-    contact:true,
+    id: 'sc3',
+    scrollId: 'shop',
+    step: '04 / 04',
+    align: 'c',
+    label: '04 / 04 · Acquisition',
+    title: <>STEP <span className="highlight">BEYOND</span></>,
+    body: 'Handcrafted in limited seasonal batches for India. Every component precision-calibrated for athletes and creators who demand uncompromising performance.',
+    shop: true,
+    testimonials: true,
   },
 ]
 
-const FEATURES = [
-  {icon:'M12 1L1 7v7l11 9 11-9V7L12 1z', title:'Premium Leather', body:'Full-grain Italian leather aged 6 weeks for unmatched durability.'},
-  {icon:'M12 3a9 9 0 100 18A9 9 0 0012 3z', title:'Air Cushion', body:'Micro-air pocket midsole absorbs impact across every stride.'},
-  {icon:'M3 20L12 3l9 17H3z', title:'Carbon Sole', body:'Carbon-fiber outsole: rigid where needed, flexible where it counts.'},
-  {icon:'M5 12a7 7 0 1014 0 7 7 0 00-14 0z', title:'Lifetime Support', body:'Free resoling and conditioning for the entire life of the shoe.'},
-]
-const TESTIS = [
-  {text:'"THE SHOE COMPANY is the way to go. Love the design and build quality."', auth:'Marcus T. — Dallas, TX'},
-  {text:'"Worth every single penny. The quality is absolutely unmatched."', auth:'Priya K. — New York, NY'},
-  {text:'"Superb fit and comfort. Literally the next level experience."', auth:'James R. — Chicago, IL'},
-]
-
-const N   = SCENES.length
-const BG  = ['01','02','03','04','05','06','07']
-const lerp  = (a,b,t) => a+(b-a)*t
-const clamp = (v,lo,hi) => Math.min(Math.max(v,lo),hi)
-const ek    = (k,dt) => 1-Math.exp(-k*dt)
-
-/* ── Nav items that link with react-scroll ─────────────────── */
 const NAV_LINKS = [
-  {label:'Story',    to:'story'},
-  {label:'Features', to:'features'},
-  {label:'Reviews',  to:'reviews'},
-  {label:'Contact',  to:'reviews'},
+  { label: 'Shop', to: 'shop' },
+  { label: 'Technology', to: 'technology' },
+  { label: 'About', to: 'shop' },
 ]
+
+const N = SCENES.length
+const lerp = (a, b, t) => a + (b - a) * t
+const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi)
+const ek = (k, dt) => 1 - Math.exp(-k * dt)
 
 export default function App() {
-  const lenisRef   = useLenis()
-  const panelRefs  = useRef([])
-  const panelTypes = useRef([])
-  const pbRef      = useRef(null)
-  const bgnRef     = useRef(null)
-  const shintRef   = useRef(null)
-  const dotsRef    = useRef(null)
-  const curRef     = useRef(null)
-  const ringRef    = useRef(null)
-  const mouse      = useRef({x:0,y:0,rx:0,ry:0})
-  const [mobileOpen, setMobileOpen] = useState(false)
-  const isFine     = typeof window !== 'undefined' && window.matchMedia('(pointer:fine)').matches
+  const lenisRef = useLenis()
+  const panelRefs = useRef([])
+  const pbRef = useRef(null)
+  const counterRef = useRef(null)
+  const bgOverlayRef = useRef(null)
+  const railNodesRef = useRef([])
+  const curRef = useRef(null)
+  const ringRef = useRef(null)
+  const mouse = useRef({ x: 0, y: 0, rx: 0, ry: 0 })
 
-  /* Custom cursor */
+  const [activeStep, setActiveStep] = useState(0)
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [selectedSize, setSelectedSize] = useState('10.5')
+  const [acquired, setAcquired] = useState(false)
+
+  const isFine = typeof window !== 'undefined' && window.matchMedia('(pointer:fine)').matches
+
+  /* Custom Cursor */
   useEffect(() => {
     if (!isFine) return
-    const onMove = e => { mouse.current.x=e.clientX; mouse.current.y=e.clientY }
-    document.addEventListener('mousemove', onMove, {passive:true})
+    const onMove = e => { mouse.current.x = e.clientX; mouse.current.y = e.clientY }
+    document.addEventListener('mousemove', onMove, { passive: true })
+
     const big = () => {
-      if(curRef.current){curRef.current.style.width='14px';curRef.current.style.height='14px'}
-      if(ringRef.current){ringRef.current.style.width='42px';ringRef.current.style.height='42px'}
+      if (curRef.current) { curRef.current.style.width = '12px'; curRef.current.style.height = '12px' }
+      if (ringRef.current) { ringRef.current.style.width = '48px'; ringRef.current.style.height = '48px'; ringRef.current.style.borderColor = 'rgba(255,255,255,0.7)' }
     }
     const sm = () => {
-      if(curRef.current){curRef.current.style.width='7px';curRef.current.style.height='7px'}
-      if(ringRef.current){ringRef.current.style.width='28px';ringRef.current.style.height='28px'}
+      if (curRef.current) { curRef.current.style.width = '6px'; curRef.current.style.height = '6px' }
+      if (ringRef.current) { ringRef.current.style.width = '32px'; ringRef.current.style.height = '32px'; ringRef.current.style.borderColor = 'rgba(255,255,255,0.35)' }
     }
-    document.querySelectorAll('a,button,[data-goto]').forEach(el=>{
-      el.addEventListener('mouseenter',big)
-      el.addEventListener('mouseleave',sm)
+
+    document.querySelectorAll('a, button, .nu-rail-node').forEach(el => {
+      el.addEventListener('mouseenter', big)
+      el.addEventListener('mouseleave', sm)
     })
     return () => document.removeEventListener('mousemove', onMove)
   }, [isFine])
 
-  /* Cache panel types once mounted */
+  /* Main Animation Frame */
   useEffect(() => {
-    panelTypes.current = panelRefs.current.map(p => {
-      if (!p) return 'l'
-      if (p.classList.contains('r')) return 'r'
-      if (p.classList.contains('c')) return 'c'
-      return 'l'
-    })
-  }, [])
-
-  /* Main animation RAF */
-  useEffect(() => {
-    let rafId, lastSI=-1
+    let rafId
+    let lastStep = -1
     const m = mouse.current
-    const DT = 1/60
+    const DT = 1 / 60
 
     function frame() {
       rafId = requestAnimationFrame(frame)
 
-      // Use lenis.scroll for perfect sync when lenis is active
-      const scrollY   = window.__lenis ? window.__lenis.scroll : window.scrollY
-      const maxScroll = (N-1)*window.innerHeight
-      const progress  = clamp(scrollY/maxScroll, 0, 1)
-      const sf        = clamp(scrollY/window.innerHeight, 0, N-1)
+      const scrollY = window.__lenis ? window.__lenis.scroll : window.scrollY
+      const maxScroll = (N - 1) * window.innerHeight
+      const progress = clamp(scrollY / maxScroll, 0, 1)
+      const sf = clamp(scrollY / window.innerHeight, 0, N - 1)
 
-      if (pbRef.current)
+      // Progress bar
+      if (pbRef.current) {
         pbRef.current.style.transform = `scaleX(${progress})`
-
-      if (shintRef.current)
-        shintRef.current.style.opacity = clamp(1-sf*2.2, 0, 1)
-
-      const siR = Math.round(sf)
-      if (siR !== lastSI) {
-        if (bgnRef.current) bgnRef.current.textContent = BG[clamp(siR,0,N-1)]
-        lastSI = siR
-        dotsRef.current?.querySelectorAll('.dot')
-          .forEach((d,i) => d.classList.toggle('on', i===siR))
       }
-      if (bgnRef.current)
-        bgnRef.current.style.transform = `translateY(${-(sf%1)*26}px)`
 
-      // Panel slide-in/out
-      for (let i=0; i<panelRefs.current.length; i++) {
+      // Background overlay opacity based on scroll
+      if (bgOverlayRef.current) {
+        if (sf > 0.15) {
+          bgOverlayRef.current.classList.add('scrolled')
+        } else {
+          bgOverlayRef.current.classList.remove('scrolled')
+        }
+      }
+
+      // Current Step calculation
+      const currentIdx = Math.min(Math.round(sf), N - 1)
+      if (currentIdx !== lastStep) {
+        lastStep = currentIdx
+        setActiveStep(currentIdx)
+        if (counterRef.current) {
+          counterRef.current.textContent = `0${currentIdx + 1} / 04`
+        }
+      }
+
+      // Panel animations
+      for (let i = 0; i < panelRefs.current.length; i++) {
         const p = panelRefs.current[i]
         if (!p) continue
-        const dist  = sf - i
+        const dist = sf - i
         const adist = Math.abs(dist)
-        if (adist > 1.8) { p.style.visibility='hidden'; continue }
-        p.style.visibility = 'visible'
-        const op = clamp(1-adist*1.3, 0, 1)
-        const sc = lerp(0.93, 1, clamp(1-adist*0.85, 0, 1))
-        const isMobile = window.innerWidth <= 768
-        let tx=0, ty=0
-        const type = panelTypes.current[i]
-        if (isMobile) {
-          // on mobile, panels slide vertically only
-          ty = clamp(dist * 45, -75, 75)
-        } else if (type==='c') {
-          ty = clamp(dist*52, -88, 88)
-        } else if (type==='r') {
-          tx = clamp(dist*-72, -105, 105)
-        } else {
-          tx = clamp(dist*72, -105, 105)
+
+        if (adist > 1.8) {
+          p.style.visibility = 'hidden'
+          continue
         }
-        p.style.transform     = `translate(${tx}px,${ty}px) scale(${sc})`
-        p.style.opacity       = op
-        p.style.pointerEvents = adist<0.45?'all':'none'
+        p.style.visibility = 'visible'
+
+        const op = clamp(1 - adist * 1.3, 0, 1)
+        const sc = lerp(0.94, 1, clamp(1 - adist * 0.85, 0, 1))
+        const isMobile = window.innerWidth <= 768
+
+        let tx = 0, ty = 0
+        if (isMobile) {
+          ty = clamp(dist * 40, -60, 60)
+        } else if (SCENES[i].align === 'c') {
+          ty = clamp(dist * 50, -80, 80)
+        } else if (SCENES[i].align === 'r') {
+          tx = clamp(dist * -65, -95, 95)
+        } else {
+          tx = clamp(dist * 65, -95, 95)
+        }
+
+        p.style.transform = `translate(${tx}px,${ty}px) scale(${sc})`
+        p.style.opacity = op
+        p.style.pointerEvents = adist < 0.45 ? 'all' : 'none'
       }
 
-      // Cursor
+      // Smooth custom cursor
       if (isFine) {
-        m.rx = lerp(m.rx, m.x, ek(14,DT))
-        m.ry = lerp(m.ry, m.y, ek(14,DT))
-        if (curRef.current)  { curRef.current.style.left=m.x+'px';   curRef.current.style.top=m.y+'px' }
-        if (ringRef.current) { ringRef.current.style.left=m.rx+'px'; ringRef.current.style.top=m.ry+'px' }
+        m.rx = lerp(m.rx, m.x, ek(14, DT))
+        m.ry = lerp(m.ry, m.y, ek(14, DT))
+        if (curRef.current) { curRef.current.style.left = m.x + 'px'; curRef.current.style.top = m.y + 'px' }
+        if (ringRef.current) { ringRef.current.style.left = m.rx + 'px'; ringRef.current.style.top = m.ry + 'px' }
       }
     }
 
@@ -199,74 +216,86 @@ export default function App() {
     return () => cancelAnimationFrame(rafId)
   }, [isFine])
 
-  /* Keyboard nav */
+  /* Keyboard Navigation */
   useEffect(() => {
     const keys = e => {
-      const cur = Math.round((window.__lenis?.scroll ?? window.scrollY)/window.innerHeight)
-      const next = e.key==='ArrowDown'||e.key==='PageDown' ? Math.min(cur+1,N-1)
-                 : e.key==='ArrowUp'  ||e.key==='PageUp'   ? Math.max(cur-1,0)
-                 : null
-      if (next===null) return
-      if (window.__lenis) window.__lenis.scrollTo(next*window.innerHeight, {duration:1.2})
-      else window.scrollTo({top:next*window.innerHeight, behavior:'smooth'})
+      const cur = Math.round((window.__lenis?.scroll ?? window.scrollY) / window.innerHeight)
+      const next = e.key === 'ArrowDown' || e.key === 'PageDown' ? Math.min(cur + 1, N - 1)
+        : e.key === 'ArrowUp' || e.key === 'PageUp' ? Math.max(cur - 1, 0)
+        : null
+      if (next === null) return
+      goToScene(next)
     }
     document.addEventListener('keydown', keys)
     return () => document.removeEventListener('keydown', keys)
   }, [])
 
-  /* Dot click navigation */
-  const goToScene = i => {
-    const target = i * window.innerHeight
-    if (window.__lenis) window.__lenis.scrollTo(target, {duration:1.2})
-    else window.scrollTo({top:target, behavior:'smooth'})
+  const goToScene = idx => {
+    const target = idx * window.innerHeight
+    if (window.__lenis) window.__lenis.scrollTo(target, { duration: 1.2 })
+    else window.scrollTo({ top: target, behavior: 'smooth' })
   }
 
-  /* Close mobile nav on scroll */
-  useEffect(() => {
-    const close = () => setMobileOpen(false)
-    window.addEventListener('scroll', close, {passive:true})
-    return () => window.removeEventListener('scroll', close)
-  }, [])
-
-  const setRef = i => el => { panelRefs.current[i] = el }
-
-  /* react-scroll offset accounts for sticky nav height */
-  const SCROLL_OFFSET = typeof window !== 'undefined' && window.innerWidth <= 768 ? -60 : -80
+  const SCROLL_OFFSET = typeof window !== 'undefined' && window.innerWidth <= 768 ? -50 : -70
 
   return (
     <>
-      {/* Custom cursor (desktop only) */}
-      {isFine && <><div id="cur" ref={curRef}/><div id="cur-ring" ref={ringRef}/></>}
+      {/* Custom Cursor */}
+      {isFine && (
+        <>
+          <div id="cur" ref={curRef} />
+          <div id="cur-ring" ref={ringRef} />
+        </>
+      )}
 
-      {/* Fixed UI */}
-      <div id="pb"    ref={pbRef}/>
-      <div id="bgn"   ref={bgnRef}>01</div>
-      <div id="shint" ref={shintRef}><div className="sh-line"/><p>Scroll</p></div>
+      {/* ── Fixed Background Viewport (Image Format requested by user) ── */}
+      <div id="nu-bg" />
+      <div id="nu-bg-overlay" ref={bgOverlayRef} />
 
-      {/* Scene dots */}
-      <div id="dots" ref={dotsRef}>
-        {SCENES.map((_,i) => (
-          <div key={i} className={`dot${i===0?' on':''}`} onClick={()=>goToScene(i)}/>
+      {/* Top Progress Line */}
+      <div id="pb" ref={pbRef} />
+
+      {/* ── Fixed Ambient Accents (Mockup Elements) ── */}
+      {/* Bottom Left: 01 / 04 */}
+      <div className="nu-bottom-left">
+        <span className="nu-counter" ref={counterRef}>01 / 04</span>
+        <div className="nu-counter-line" />
+      </div>
+
+      {/* Bottom Right: STEP BEYOND. */}
+      <div className="nu-bottom-right">STEP BEYOND.</div>
+
+      {/* Right Progress Rail with Ring indicator */}
+      <div id="nu-rail">
+        {SCENES.map((_, i) => (
+          <div
+            key={i}
+            className={`nu-rail-node${activeStep === i ? ' active' : ''}`}
+            onClick={() => goToScene(i)}
+            title={`Scene 0${i + 1}`}
+          >
+            <div className="nu-rail-ring" />
+            <div className="nu-rail-dot" />
+          </div>
         ))}
       </div>
 
-      {/* ── NAV ── */}
+      {/* ── Top Navigation (SHOP | TECHNOLOGY | ABOUT) ── */}
       <nav id="nav">
-        {/* Logo — react-scroll to top */}
         <Link
-          className="nav-logo"
+          className="nav-brand"
           to="home"
           smooth
           duration={1200}
           offset={SCROLL_OFFSET}
         >
-          THE SHOE CO. <span>2025</span>
+          <img src="/images/nu-logo-only.png" alt="NU" className="nav-logo-img" />
         </Link>
 
-        {/* Desktop nav */}
+        {/* Desktop Nav Links */}
         <ul className="nav-links">
           {NAV_LINKS.map(l => (
-            <li key={l.to}>
+            <li key={l.label}>
               <Link
                 to={l.to}
                 smooth
@@ -281,22 +310,22 @@ export default function App() {
           ))}
         </ul>
 
-        {/* Hamburger */}
+        {/* Mobile Hamburger */}
         <button
           id="menu-btn"
           className={mobileOpen ? 'open' : ''}
           onClick={() => setMobileOpen(o => !o)}
-          aria-label="Menu"
+          aria-label="Navigation Menu"
         >
-          <span/><span/><span/>
+          <span /><span /><span />
         </button>
       </nav>
 
-      {/* Mobile full-screen nav */}
+      {/* Mobile Drawer */}
       <div id="mobile-nav" className={mobileOpen ? 'open' : ''}>
         {NAV_LINKS.map(l => (
           <Link
-            key={l.to}
+            key={l.label}
             to={l.to}
             smooth
             duration={1200}
@@ -306,97 +335,185 @@ export default function App() {
             {l.label}
           </Link>
         ))}
-        <div className="mob-nav-foot">Dallas, TX · +1 559 011 209 10</div>
       </div>
 
-      {/* ── 3D Canvas ── */}
-      <Scene3D/>
+      {/* ── 3D Canvas — always visible, shoe animates from scene 0 through all 4 scenes ── */}
+      <CanvasErrorBoundary>
+        <Scene3D />
+      </CanvasErrorBoundary>
 
-      {/* ── SCROLL CONTENT — 7 scenes × 100vh ── */}
+      {/* ── Scroll Content (4 Scenes × 100vh) ── */}
       <div id="content">
         {SCENES.map((sc, i) => (
-          <div
-            className="scene"
-            key={sc.id}
-            id={sc.scrollId}   /* react-scroll targets this id */
-          >
+          <div className="scene" key={sc.id} id={sc.scrollId}>
             <div className="pin">
               <div
-                className={`panel${sc.align==='r'?' r':sc.align==='c'?' c':''}`}
-                ref={setRef(i)}
+                className={`panel${sc.align === 'r' ? ' r' : sc.align === 'c' ? ' c' : ''}`}
+                ref={el => { panelRefs.current[i] = el }}
               >
                 <div className="pc">
-                  <span className="p-label">{sc.label}</span>
 
-                  <div className="p-title" style={sc.titleSmall?{fontSize:'clamp(2.2rem,5vw,4rem)'}:{}}>
-                    {sc.title}
-                  </div>
+                  {/* ── SCENE 1: HERO (EXACT FORMAT MATCH TO MOCKUP) ── */}
+                  {sc.isHero && (
+                    <div className="hero-brand-block">
+                      {/* Official NU Brand Emblem */}
+                      <img src="/images/nu-logo-only.png" alt="NU" className="hero-nu-logo" />
 
-                  {sc.body && <p className="p-body">{sc.body}</p>}
+                      {/* MOVE DIFFERENT. */}
+                      <h1 className="hero-slogan">MOVE DIFFERENT.</h1>
 
-                  {sc.stats && (
-                    <div className="p-stats">
-                      {sc.stats.map(s => (
-                        <div key={s.l}>
-                          <div className="st-n">{s.n}</div>
-                          <div className="st-l">{s.l}</div>
+                      {/* Subtitles */}
+                      <div className="hero-subtext">
+                        Engineered for more.<br />
+                        Designed for you.
+                      </div>
+
+                      {/* Thin vertical accent line with star sparkle */}
+                      <div className="hero-sparkle-line">
+                        <div className="v-line" />
+                        <span className="star">✦</span>
+                      </div>
+
+                      {/* Actions: single EXPLORE → pill */}
+                      <div className="nu-actions-row">
+                        <Link
+                          className="nu-btn-pill"
+                          to="technology"
+                          smooth
+                          duration={1200}
+                          offset={SCROLL_OFFSET}
+                        >
+                          EXPLORE <span className="arr">→</span>
+                        </Link>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ── SCENES 2 & 3: TECHNOLOGY & PERFORMANCE ── */}
+                  {!sc.isHero && !sc.shop && (
+                    <>
+                      <span className="p-label">{sc.label}</span>
+                      <div className="p-title">{sc.title}</div>
+                      {sc.body && <p className="p-body">{sc.body}</p>}
+
+                      {/* Metric Stats */}
+                      {sc.stats && (
+                        <div className="p-stats">
+                          {sc.stats.map(s => (
+                            <div className="st-item" key={s.l}>
+                              <div className="st-n">{s.n}</div>
+                              <div className="st-l">{s.l}</div>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
-                  )}
+                      )}
 
-                  {sc.cta && (
-                    <div className="p-cta">
-                      <Link className="btn" to="story" smooth duration={1200} offset={SCROLL_OFFSET}>
-                        Explore Story
-                      </Link>
-                      <Link className="btn-o" to="features" smooth duration={1200} offset={SCROLL_OFFSET}>
-                        See Features →
-                      </Link>
-                    </div>
-                  )}
-
-                  {sc.grid && (
-                    <div className="feat-grid">
-                      {FEATURES.map(f => (
-                        <div className="fc" key={f.title}>
-                          <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-                            <path d={f.icon} stroke="#c8a96e" strokeWidth="1.1"/>
-                          </svg>
-                          <h4>{f.title}</h4>
-                          <p>{f.body}</p>
+                      {/* Features Cards */}
+                      {sc.features && (
+                        <div className="nu-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)', marginTop: '1.6rem' }}>
+                          {sc.features.map(f => (
+                            <div className="nu-card" key={f.title}>
+                              <div className="nu-card-num">{f.num}</div>
+                              <h4>{f.title}</h4>
+                              <p>{f.desc}</p>
+                            </div>
+                          ))}
                         </div>
-                      ))}
-                    </div>
+                      )}
+                    </>
                   )}
 
-                  {sc.testi && (
-                    <div className="t-strip">
-                      {TESTIS.map(t => (
-                        <div className="tc" key={t.auth}>
-                          <div className="tc-stars">★★★★★</div>
-                          <div className="tc-text">{t.text}</div>
-                          <div className="tc-auth">{t.auth}</div>
+                  {/* ── SCENE 4: SHOP & STEP BEYOND ── */}
+                  {sc.shop && (
+                    <>
+                      <span className="p-label">{sc.label}</span>
+                      <div className="p-title">{sc.title}</div>
+                      <p className="p-body">{sc.body}</p>
+
+                      {/* Acquisition Card & Size Selector */}
+                      <div className="nu-shop-box">
+                        <div style={{ textAlign: 'left' }}>
+                          <div className="nu-price">₹24,999</div>
+                          <div style={{ fontSize: '0.62rem', letterSpacing: '0.15em', color: 'rgba(255,255,255,0.45)', marginTop: '0.2rem', textTransform: 'uppercase' }}>
+                            Incl. GST & Express Delivery in India
+                          </div>
                         </div>
-                      ))}
-                    </div>
+
+                        {/* Sizes */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', alignItems: 'flex-start' }}>
+                          <div style={{ fontSize: '0.58rem', letterSpacing: '0.2em', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase' }}>Select Size (UK / India)</div>
+                          <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                            {['UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11', 'UK 12'].map(sz => (
+                              <button
+                                key={sz}
+                                onClick={() => setSelectedSize(sz)}
+                                style={{
+                                  padding: '0.45rem 0.8rem',
+                                  background: selectedSize === sz ? '#ffffff' : 'rgba(255,255,255,0.06)',
+                                  color: selectedSize === sz ? '#070709' : '#ffffff',
+                                  border: '1px solid rgba(255,255,255,0.18)',
+                                  borderRadius: '3px',
+                                  fontFamily: "'Space Grotesk', sans-serif",
+                                  fontSize: '0.72rem',
+                                  fontWeight: 600,
+                                  cursor: 'pointer',
+                                  transition: 'all 0.2s',
+                                }}
+                              >
+                                {sz}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+
+                        <button
+                          className="nu-btn-primary"
+                          onClick={() => setAcquired(true)}
+                        >
+                          {acquired ? 'PAIRED & RESERVED IN INDIA ✓' : 'PRE-ORDER NOW — ₹24,999'}
+                        </button>
+                      </div>
+
+                      {/* Testimonials from Indian Creators & Athletes */}
+                      <div className="nu-testimonials">
+                        <div className="nu-quote-card">
+                          <p className="nu-quote-text">
+                            "NU completely redefines footwear ergonomics on Indian tarmac. The adaptive hollow-core suspension makes uneven city streets feel like a track."
+                          </p>
+                          <span className="nu-quote-author">Arjun Singhania · Bengaluru, Karnataka</span>
+                        </div>
+                        <div className="nu-quote-card">
+                          <p className="nu-quote-text">
+                            "The liquid metal aesthetics turn heads everywhere in Bandra. Unrivaled comfort from morning shoots to late night runs across Mumbai."
+                          </p>
+                          <span className="nu-quote-author">Meera Nambiar · Mumbai, Maharashtra</span>
+                        </div>
+                        <div className="nu-quote-card">
+                          <p className="nu-quote-text">
+                            "Finally, a world-class engineered sneaker directly available with India pricing. The carbon sole snap and lightweight feel are unreal."
+                          </p>
+                          <span className="nu-quote-author">Kabir Sen · New Delhi</span>
+                        </div>
+                        <div className="nu-quote-card">
+                          <p className="nu-quote-text">
+                            "Exceptional biomechanics. The 12° anatomic pitch significantly reduces heel and Achilles impact during high intensity training."
+                          </p>
+                          <span className="nu-quote-author">Dr. Rohit Verma · Hyderabad, Telangana</span>
+                        </div>
+                      </div>
+                    </>
                   )}
 
-                  {sc.contact && (
-                    <div className="p-cta" style={{justifyContent:'center',marginTop:'2rem'}}>
-                      <a className="btn" href="#">Shop Collection</a>
-                      <span className="btn-o">Dallas, TX · +1 559 011 209 10</span>
-                    </div>
-                  )}
                 </div>
               </div>
             </div>
           </div>
         ))}
 
+        {/* ── Footer ── */}
         <footer>
-          <span>© 2025 The Shoe Company</span>
-          <span>Premium Footwear Since 1998</span>
+          <span>© 2025 NU FOOTWEAR INDIA. ALL RIGHTS RESERVED.</span>
+          <span>BENGALURU · MUMBAI · NEW DELHI · HYDERABAD</span>
         </footer>
       </div>
     </>

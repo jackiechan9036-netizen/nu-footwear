@@ -3,18 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0a0a0a" />
-    <meta name="description" content="THE SHOE COMPANY — Premium Footwear. Where precision engineering meets uncompromising style." />
-    <title>THE SHOE COMPANY — Premium Footwear</title>
-    <link rel="icon" href="./public/favicon.svg">
+    <meta name="theme-color" content="#070709" />
+    <meta name="description" content="NU — Move Different. Engineered for more. Designed for you. Step beyond." />
+    <title>NU — Move Different</title>
+    <link rel="icon" href="/images/nu-logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Syne:wght@500;700;800&family=Inter:wght@200;300;400;500;600&display=swap" rel="stylesheet">
     <style>
       /* Instant reset before app CSS loads — prevents white flash */
       *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
       html, body {
-        background: #0a0a0a;
+        background: #070709;
         scrollbar-width: none; -ms-overflow-style: none;
         overflow-x: hidden;
       }
@@ -24,117 +24,114 @@
       /* ── LOADING SCREEN ─────────────────────────── */
       #app-loader {
         position: fixed; inset: 0;
-        background: #0a0a0a;
+        background: #070709;
         z-index: 99999;
         display: flex; flex-direction: column;
         align-items: center; justify-content: center;
         gap: clamp(1.2rem, 3vh, 2rem);
-        transition: opacity 0.9s ease, visibility 0.9s ease;
+        transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.8s ease;
       }
       #app-loader.done { opacity: 0; visibility: hidden; pointer-events: none; }
 
       /* Corners */
       .ldr-corner {
         position: absolute; width: 20px; height: 20px;
-        border-color: rgba(200,169,110,.28); border-style: solid;
+        border-color: rgba(255,255,255,0.18); border-style: solid;
       }
       .ldr-tl { top:clamp(1rem,4vw,2rem); left:clamp(1rem,4vw,2rem); border-width:1px 0 0 1px; }
       .ldr-tr { top:clamp(1rem,4vw,2rem); right:clamp(1rem,4vw,2rem); border-width:1px 1px 0 0; }
       .ldr-bl { bottom:clamp(1rem,4vw,2rem); left:clamp(1rem,4vw,2rem); border-width:0 0 1px 1px; }
       .ldr-br { bottom:clamp(1rem,4vw,2rem); right:clamp(1rem,4vw,2rem); border-width:0 1px 1px 0; }
 
-      /* Shoe icon */
-      .ldr-shoe { animation: ldrFloat 2s ease-in-out infinite; }
-      @keyframes ldrFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+      /* NU Logo Animation */
+      .ldr-logo {
+        width: 110px; height: auto;
+        animation: ldrPulse 2.2s ease-in-out infinite;
+        filter: drop-shadow(0 0 20px rgba(255,255,255,0.25));
+      }
+      @keyframes ldrPulse {
+        0%, 100% { transform: scale(1); opacity: 0.85; filter: drop-shadow(0 0 15px rgba(255,255,255,0.2)); }
+        50% { transform: scale(1.04); opacity: 1; filter: drop-shadow(0 0 30px rgba(255,255,255,0.5)); }
+      }
 
       /* Brand */
       .ldr-brand {
-        font-family: 'Bebas Neue', 'Arial Black', sans-serif;
-        font-size: clamp(1.6rem, 5vw, 2rem);
-        letter-spacing: .28em; color: #f5f3ee;
-        text-align: center; line-height: 1;
+        font-family: 'Space Grotesk', -apple-system, sans-serif;
+        font-size: clamp(0.7rem, 1.8vw, 0.85rem);
+        letter-spacing: .4em; color: #ffffff;
+        text-align: center; line-height: 1.4;
+        text-transform: uppercase;
       }
       .ldr-brand small {
-        display: block; font-family: sans-serif;
+        display: block; font-family: 'Inter', sans-serif;
         font-size: clamp(.42rem,.8vw,.52rem);
-        letter-spacing: .3em; color: #c8a96e;
-        font-weight: 400; margin-top: .4rem;
-        text-transform: uppercase; opacity: .75;
+        letter-spacing: .35em; color: rgba(255,255,255,0.45);
+        font-weight: 300; margin-top: .5rem;
+        text-transform: uppercase;
       }
 
       /* Progress */
       .ldr-track {
         width: clamp(140px, 40vw, 200px); height: 1px;
-        background: rgba(245,243,238,.08);
+        background: rgba(255,255,255,.1);
         position: relative; overflow: hidden;
       }
       .ldr-bar {
         position: absolute; inset-y: 0; left: -100%;
-        width: 100%; background: #c8a96e;
-        animation: ldrSlide 2.2s cubic-bezier(.4,0,.2,1) forwards;
+        width: 100%; background: linear-gradient(90deg, transparent, #ffffff, #c0c0c0);
+        animation: ldrSlide 2s cubic-bezier(.4,0,.2,1) forwards;
       }
-      @keyframes ldrSlide { 0%{left:-100%} 60%{left:-15%} 100%{left:0%} }
+      @keyframes ldrSlide { 0%{left:-100%} 60%{left:-10%} 100%{left:0%} }
 
       .ldr-status {
-        font-family: sans-serif;
+        font-family: 'Inter', sans-serif;
         font-size: clamp(.44rem,.8vw,.55rem);
-        letter-spacing: .25em; text-transform: uppercase;
-        color: rgba(245,243,238,.3);
-        animation: ldrPulse 1.5s ease-in-out infinite;
+        letter-spacing: .3em; text-transform: uppercase;
+        color: rgba(255,255,255,.35);
       }
-      @keyframes ldrPulse { 0%,100%{opacity:.3} 50%{opacity:.9} }
     </style>
   </head>
   <body>
 
-    <!-- Loading screen — pure HTML/CSS, shows in <16ms -->
+    <!-- Loading screen -->
     <div id="app-loader">
       <div class="ldr-corner ldr-tl"></div>
       <div class="ldr-corner ldr-tr"></div>
       <div class="ldr-corner ldr-bl"></div>
       <div class="ldr-corner ldr-br"></div>
 
-      <svg class="ldr-shoe" width="80" height="50" viewBox="0 0 80 50" fill="none">
-        <path d="M8 38C8 38 6 35 8 32C10 29 15 28 20 27L38 22C42 21 48 19 52 16C56 13 60 11 65 12C70 13 73 16 74 20C75 24 72 28 68 30L20 38C15 39 10 40 8 38Z"
-              fill="rgba(200,169,110,0.12)" stroke="#c8a96e" stroke-width="1"/>
-        <path d="M8 38L72 38C74 38 74 42 72 43L10 43C7 43 6 40 8 38Z"
-              fill="rgba(200,169,110,0.08)" stroke="#c8a96e" stroke-width="0.8"/>
-        <path d="M38 22L42 14C43 12 46 11 48 13L52 16" stroke="#c8a96e" stroke-width="0.8" opacity="0.6"/>
-        <circle cx="40" cy="38" r="1.5" fill="#c8a96e">
-          <animate attributeName="opacity" values="0.8;0.2;0.8" dur="1.5s" repeatCount="indefinite"/>
-        </circle>
-      </svg>
+      <img src="/images/nu-logo-only.png" alt="NU" class="ldr-logo" />
 
       <div class="ldr-brand">
-        THE SHOE CO.
-        <small>Premium Footwear · Est. 1998</small>
+        NU
+        <small>Move Different · Step Beyond</small>
       </div>
 
       <div class="ldr-track"><div class="ldr-bar"></div></div>
-      <div class="ldr-status">Loading experience...</div>
+      <div class="ldr-status">INITIALIZING SYSTEM</div>
     </div>
 
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
 
     <script>
-      // Dismiss loader once React has rendered content
+      const dismissLoader = () => {
+        const el = document.getElementById('app-loader')
+        if (el && !el.classList.contains('done')) {
+          el.classList.add('done')
+          setTimeout(() => el.remove(), 700)
+        }
+      }
+
       const obs = new MutationObserver(() => {
         const root = document.getElementById('root')
         if (root && root.children.length > 0) {
           obs.disconnect()
-          setTimeout(() => {
-            const el = document.getElementById('app-loader')
-            if (el) { el.classList.add('done'); setTimeout(() => el.remove(), 1000) }
-          }, 900)
+          setTimeout(dismissLoader, 300)
         }
       })
       obs.observe(document.getElementById('root'), {childList:true})
-      // Hard fallback
-      setTimeout(() => {
-        const el = document.getElementById('app-loader')
-        if (el) { el.classList.add('done'); setTimeout(() => el.remove(), 1000) }
-      }, 6000)
+      setTimeout(dismissLoader, 1200)
     </script>
   </body>
 </html>
